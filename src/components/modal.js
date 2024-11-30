@@ -17,5 +17,5 @@ export function handleOverlayClick(event) {
 
 export function closeModal(element) {
   element.classList.remove("popup_is-opened");
-  document.removeEventListener("keydown", escapeKeyHandler);
+  document.removeEventListener("keydown", handleEscapeKeyPress);
 }

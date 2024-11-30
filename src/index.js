@@ -17,6 +17,7 @@ const popups = document.querySelectorAll(".popup");
 
 const imagePopup = document.querySelector(".popup_type_image");
 const imagePopupImage = imagePopup.querySelector(".popup__image");
+const imagePopupParagraph = imagePopup.querySelector(".popup__caption");
 
 const editProfilePopup = document.querySelector(".popup_type_edit");
 const newCardPopup = document.querySelector(".popup_type_new-card");
@@ -51,16 +52,18 @@ function submitNewPlaceForm(event) {
   newPlaceForm.reset();
 }
 
-function handleImageClick(event) {
-  imagePopupImage.src = event.target.src;
-  imagePopupImage.alt = event.target.alt;
-  imagePopup.querySelector(".popup__caption").textContent = event.target.alt;
+function handleImageClick(name, link) {
+  imagePopupImage.src = link;
+  imagePopupImage.alt = name;
+  imagePopupParagraph.textContent = name;
   openModal(imagePopup);
 }
 
 function renderCards() {
   initialCards.forEach((item) =>
-    cards.append(createCard(item, handleImageClick))
+    cards.append(
+      createCard(item, handleImageClick, handleDeleteClick, handleLikeClick)
+    )
   );
 }
 
@@ -70,12 +73,7 @@ popupCloseButtons.forEach((button) => {
 
 popups.forEach((popup) => {
   popup.classList.add("popup_is-animated");
-  popup.addEventListener(
-    "click",
-    handleOverlayClick,
-    handleDeleteClick,
-    handleLikeClick
-  );
+  popup.addEventListener("mousedown", handleOverlayClick);
 });
 
 profileEditButton.addEventListener("click", () => {
