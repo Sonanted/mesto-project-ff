@@ -10,9 +10,9 @@ export function handleLikeClick(event) {
 
 export function createCard(
   props,
-  imageClickHandler,
   deleteClickHandler,
-  likeClickHandler
+  likeClickHandler,
+  imageClickHandler
 ) {
   const card = cardTemplate.querySelector(".card").cloneNode(true);
   const cardImage = card.querySelector(".card__image");

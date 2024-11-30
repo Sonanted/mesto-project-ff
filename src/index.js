@@ -44,9 +44,9 @@ function submitNewPlaceForm(event) {
   cards.prepend(
     createCard(
       {name: placeNameInput.value, link: linkInput.value},
-      deleteCard,
-      likeCard,
-      imagePopupFunction
+      handleDeleteClick,
+      handleLikeClick,
+      handleImageClick
     )
   );
   newPlaceForm.reset();
@@ -62,7 +62,7 @@ function handleImageClick(name, link) {
 function renderCards() {
   initialCards.forEach((item) =>
     cards.append(
-      createCard(item, handleImageClick, handleDeleteClick, handleLikeClick)
+      createCard(item, handleDeleteClick, handleLikeClick, handleImageClick)
     )
   );
 }
