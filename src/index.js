@@ -6,6 +6,7 @@ import {
   handleLikeClick,
 } from "./components/card";
 import {openModal, closeModal, handleOverlayClick} from "./components/modal";
+import {enableValidation} from "./components/validation";
 
 const cards = document.querySelector(".places__list");
 
@@ -94,4 +95,5 @@ newPlaceForm.addEventListener("submit", (event) => {
   closeModal(newCardPopup);
 });
 
+enableValidation();
 renderCards();
