@@ -12,6 +12,7 @@ import {
   patchUserAvatar,
   postCard,
 } from "./components/api";
+import {enableValidation} from "./components/validation";
 
 const cards = document.querySelector(".places__list");
 
@@ -158,6 +159,7 @@ editAvatarForm.addEventListener("submit", (event) => submitAvatarForm(event));
 
 Promise.all([getUser(), getCards()]).then((values) => {
   const [responseProfile, responseCards] = [...values];
+  enableValidation();
   renderProfile(responseProfile);
   renderCards(responseCards);
 });
