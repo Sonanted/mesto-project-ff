@@ -1,32 +1,68 @@
+import {deleteCard, deleteLikeFromCard, putLikeOnCard} from "./api";
+
+const config = {
+  cardClass: "card",
+  cardTitleClass: "card__title",
+  cardImageClass: "card__image",
+  likeButtonClass: "card__like-button",
+  likeButtonActiveClass: "card__like-button_is-active",
+  likeCountClass: "card__like-count",
+  deleteButtonClass: "card__delete-button",
+  deleteButtonHiddenClass: "card__delete-button_is-hidden",
+};
+
 const cardTemplate = document.querySelector("#card-template").content;
 
-export function handleDeleteClick(event) {
-  event.target.closest(".card").remove();
+export function handleDeleteButtonClick(event) {
+  const card = event.target.closest(`.${config.cardClass}`);
+  deleteCard(card.dataId);
+  card.remove();
 }
 
-export function handleLikeClick(event) {
-  event.target.classList.toggle("card__like-button_is-active");
+export function handleLikeButtonClick(event) {
+  const card = event.target.closest(`.${config.cardClass}`);
+  (event.target.classList.toggle(config.likeButtonActiveClass)
+    ? putLikeOnCard(card.dataId)
+    : deleteLikeFromCard(card.dataId)
+  ).then((res) => {
+    card.querySelector(`.${config.likeCountClass}`).textContent =
+      res.likes.length;
+  });
 }
 
 export function createCard(
   props,
+  userId,
   deleteClickHandler,
   likeClickHandler,
   imageClickHandler
 ) {
-  const card = cardTemplate.querySelector(".card").cloneNode(true);
-  const cardImage = card.querySelector(".card__image");
-  card.querySelector(".card__title").textContent = props.name;
+  const card = cardTemplate
+    .querySelector(`.${config.cardClass}`)
+    .cloneNode(true);
+  const cardImage = card.querySelector(`.${config.cardImageClass}`);
+  const cardLikeButton = card.querySelector(`.${config.likeButtonClass}`);
+
+  card.dataId = props._id;
+  card.querySelector(`.${config.cardTitleClass}`).textContent = props.name;
   cardImage.src = props.link;
   cardImage.alt = props.name;
   card
-    .querySelector(".card__delete-button")
+    .querySelector(`.${config.deleteButtonClass}`)
     .addEventListener("click", deleteClickHandler);
-  card
-    .querySelector(".card__like-button")
-    .addEventListener("click", likeClickHandler);
+  cardLikeButton.addEventListener("click", likeClickHandler);
+  if (props.likes.find((item) => item._id == userId)) {
+    cardLikeButton.classList.add(config.likeButtonActiveClass);
+  }
   cardImage.addEventListener("click", () =>
     imageClickHandler(props.name, props.link)
   );
+  card.querySelector(`.${config.likeCountClass}`).textContent =
+    props.likes.length;
+  if (userId !== props.owner._id) {
+    card
+      .querySelector(`.${config.deleteButtonClass}`)
+      .classList.add(config.deleteButtonHiddenClass);
+  }
   return card;
 }
