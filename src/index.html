@@ -111,12 +111,14 @@
           <h3 class="popup__title">Обновить аватар</h3>
           <form class="popup__form" name="edit-avatar">
             <input
+              id="input-avatar"
               type="url"
               name="avatar"
               class="popup__input popup__input_type_avatar"
               placeholder="Ссылка на аватар"
               required
             />
+            <span class="popup__input-error input-avatar-error"></span>
             <button type="submit" class="button popup__button">
               Сохранить
             </button>
