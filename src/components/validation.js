@@ -1,21 +1,20 @@
-const patternErrorMessage =
-  "Поле может содержать только латинские, кириллические буквы, знаки дефиса и пробелы";
+let config;
 
 function showInputError(formElement, inputElement, errorMessage) {
   const errorElement = formElement.querySelector(`.${inputElement.id}-error`);
-  inputElement.classList.add("popup__input-type-error");
+  inputElement.classList.add(config.inputErrorClass);
   errorElement.textContent = errorMessage;
 }
 
 function hideInputError(formElement, inputElement) {
   const errorElement = formElement.querySelector(`.${inputElement.id}-error`);
-  inputElement.classList.remove("popup__input-type-error");
+  inputElement.classList.remove(config.inputErrorClass);
   errorElement.textContent = "";
 }
 
 function checkInputValidity(formElement, inputElement) {
   if (inputElement.validity.patternMismatch) {
-    inputElement.setCustomValidity(patternErrorMessage);
+    inputElement.setCustomValidity(inputElement.dataset.error);
   } else {
     inputElement.setCustomValidity("");
   }
@@ -32,16 +31,18 @@ function hasInvalidInput(inputList) {
 
 function toggleButtonState(inputList, buttonElement) {
   if (hasInvalidInput(inputList)) {
-    buttonElement.classList.add("popup__button-inactive");
+    buttonElement.classList.add(config.inactiveButtonClass);
   } else {
-    buttonElement.classList.remove("popup__button-inactive");
+    buttonElement.classList.remove(config.inactiveButtonClass);
   }
 }
 
 function setEventListeners(formElement) {
-  const inputList = Array.from(formElement.querySelectorAll(".popup__input"));
-  const buttonElement = formElement.querySelector(".popup__button");
-  toggleButtonState(inputList, buttonElement);
+  const inputList = Array.from(
+    formElement.querySelectorAll(config.inputSelector)
+  );
+  const buttonElement = formElement.querySelector(config.submitButtonSelector);
+  toggleButtonState(inputList, buttonElement, config.inactiveButtonClass);
   inputList.forEach((inputElement) => {
     inputElement.addEventListener("input", function () {
       checkInputValidity(formElement, inputElement);
@@ -50,12 +51,22 @@ function setEventListeners(formElement) {
   });
 }
 
-export function enableValidation() {
-  const formList = Array.from(document.querySelectorAll(".popup__form"));
+export function enableValidation(configVaidation) {
+  config = configVaidation;
+  const formList = Array.from(document.querySelectorAll(config.formSelector));
   formList.forEach((formElement) => {
     formElement.addEventListener("submit", function (evt) {
       evt.preventDefault();
     });
     setEventListeners(formElement);
   });
+}
+
+export function clearValidation(form, configVaidation) {
+  config = configVaidation;
+  const inputList = Array.from(form.querySelectorAll(config.inputSelector));
+  inputList.forEach((inputElement) => {
+    hideInputError(form, inputElement);
+  });
+  toggleButtonState(inputList, form.querySelector(config.submitButtonSelector));
 }

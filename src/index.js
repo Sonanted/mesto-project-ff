@@ -12,12 +12,12 @@ import {
   patchUserAvatar,
   postCard,
 } from "./components/api";
-import {enableValidation} from "./components/validation";
+import {clearValidation, enableValidation} from "./components/validation";
 
 const cards = document.querySelector(".places__list");
 
 const profileEditButton = document.querySelector(".profile__edit-button");
-const profileAddButton = document.querySelector(".profile__add-button");
+const placeAddButton = document.querySelector(".profile__add-button");
 const avatarBlock = document.querySelector(".profile__image");
 
 const popupCloseButtons = document.querySelectorAll(".popup__close");
@@ -44,6 +44,14 @@ const linkInput = newPlaceForm.elements["link"];
 
 const editAvatarForm = document.forms["edit-avatar"];
 const avatarInput = editAvatarForm.elements["avatar"];
+
+const validationConfig = {
+  formSelector: ".popup__form",
+  inputSelector: ".popup__input",
+  submitButtonSelector: ".popup__button",
+  inactiveButtonClass: "popup__button-inactive",
+  inputErrorClass: "popup__input-type-error",
+};
 
 const handlers = [
   handleDeleteButtonClick,
@@ -136,9 +144,9 @@ function renderAvatar(link) {
   ).style = `background-image: url('${link}')`;
 }
 
-popupCloseButtons.forEach((button) => {
-  button.addEventListener("click", () => closeModal(button.closest(".popup")));
-});
+popupCloseButtons.forEach((button) =>
+  button.addEventListener("click", () => closeModal(button.closest(".popup")))
+);
 
 popups.forEach((popup) => {
   popup.classList.add("popup_is-animated");
@@ -146,12 +154,21 @@ popups.forEach((popup) => {
 });
 
 profileEditButton.addEventListener("click", () => {
+  clearValidation(editProfileForm, validationConfig);
   nameInput.value = profileTitle.textContent;
   descriptionInput.value = profileDescription.textContent;
   openModal(editProfilePopup);
 });
-profileAddButton.addEventListener("click", () => openModal(newCardPopup));
-avatarBlock.addEventListener("click", () => openModal(editAvatarPopup));
+placeAddButton.addEventListener("click", () => {
+  newPlaceForm.reset();
+  clearValidation(newPlaceForm, validationConfig);
+  openModal(newCardPopup);
+});
+avatarBlock.addEventListener("click", () => {
+  editAvatarForm.reset();
+  clearValidation(editAvatarForm, validationConfig);
+  openModal(editAvatarPopup);
+});
 
 editProfileForm.addEventListener("submit", (event) => submitProfileForm(event));
 newPlaceForm.addEventListener("submit", (event) => submitNewPlaceForm(event));
@@ -159,7 +176,7 @@ editAvatarForm.addEventListener("submit", (event) => submitAvatarForm(event));
 
 Promise.all([getUser(), getCards()]).then((values) => {
   const [responseProfile, responseCards] = [...values];
-  enableValidation();
+  enableValidation(validationConfig);
   renderProfile(responseProfile);
   renderCards(responseCards);
 });
