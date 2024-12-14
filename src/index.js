@@ -1,10 +1,5 @@
 import "./pages/index.css";
-import {
-  createCard,
-  handleDeleteButtonClick,
-  handleLikeButtonClick,
-} from "./components/card";
-import {openModal, closeModal, handleOverlayClick} from "./components/modal";
+
 import {
   getCards,
   getUser,
@@ -12,103 +7,101 @@ import {
   patchUserAvatar,
   postCard,
 } from "./components/api";
-import {clearValidation, enableValidation} from "./components/validation";
 
-const cards = document.querySelector(".places__list");
-
-const profileEditButton = document.querySelector(".profile__edit-button");
-const placeAddButton = document.querySelector(".profile__add-button");
-const avatarBlock = document.querySelector(".profile__image");
-
-const popupCloseButtons = document.querySelectorAll(".popup__close");
-const popups = document.querySelectorAll(".popup");
-
-const imagePopup = document.querySelector(".popup_type_image");
-const imagePopupImage = imagePopup.querySelector(".popup__image");
-const imagePopupParagraph = imagePopup.querySelector(".popup__caption");
-
-const editProfilePopup = document.querySelector(".popup_type_edit");
-const newCardPopup = document.querySelector(".popup_type_new-card");
-const editAvatarPopup = document.querySelector(".popup_type_avatar");
-
-const profileTitle = document.querySelector(".profile__title");
-const profileDescription = document.querySelector(".profile__description");
-
-const editProfileForm = document.forms["edit-profile"];
-const nameInput = editProfileForm.elements["name"];
-const descriptionInput = editProfileForm.elements["description"];
-
-const newPlaceForm = document.forms["new-place"];
-const placeNameInput = newPlaceForm.elements["place-name"];
-const linkInput = newPlaceForm.elements["link"];
-
-const editAvatarForm = document.forms["edit-avatar"];
-const avatarInput = editAvatarForm.elements["avatar"];
-
-const validationConfig = {
-  formSelector: ".popup__form",
-  inputSelector: ".popup__input",
-  submitButtonSelector: ".popup__button",
-  inactiveButtonClass: "popup__button-inactive",
-  inputErrorClass: "popup__input-type-error",
-};
-
-const handlers = [
+import {
+  createCard,
   handleDeleteButtonClick,
   handleLikeButtonClick,
-  handleImageClick,
-];
+} from "./components/card";
+
+import {openModal, closeModal, handleOverlayClick} from "./components/modal";
+
+import {clearValidation, enableValidation} from "./components/validation";
+
+import {
+  cards,
+  profileEditButton,
+  placeAddButton,
+  avatarBlock,
+  popupCloseButtons,
+  popups,
+  imagePopup,
+  imagePopupImage,
+  imagePopupParagraph,
+  editProfilePopup,
+  newCardPopup,
+  editAvatarPopup,
+  profileTitle,
+  profileDescription,
+  editProfileForm,
+  nameInput,
+  descriptionInput,
+  newPlaceForm,
+  placeNameInput,
+  linkInput,
+  editAvatarForm,
+  avatarInput,
+  validationConfig,
+} from "./utils/constants";
+
+const handlers = {
+  deleteClickHandler: handleDeleteButtonClick,
+  likeClickHandler: handleLikeButtonClick,
+  imageClickHandler: handleImageClick,
+};
 
 let id;
 
+function renderLoading(
+  isLoading,
+  button,
+  buttonText = "Сохранить",
+  loadingText = "Сохранение..."
+) {
+  button.textContent = isLoading ? loadingText : buttonText;
+}
+
+function handleSubmit(request, evt, loadingText = "Сохранение...") {
+  evt.preventDefault();
+  const submitButton = evt.submitter;
+  const initialText = submitButton.textContent;
+  renderLoading(true, submitButton, initialText, loadingText);
+  request()
+    .then(() => {
+      evt.target.reset();
+      closeModal(evt.target.closest(".popup"));
+    })
+    .catch((err) => console.error(`Форма не отправлена: ${err}`))
+    .finally(() => renderLoading(false, submitButton, initialText));
+}
+
 function submitProfileForm(event) {
-  event.preventDefault();
-  renderSaving(editProfileForm, true);
-  patchUser(
-    JSON.stringify({
+  function makeRequest() {
+    return patchUser({
       name: nameInput.value,
       about: descriptionInput.value,
-    })
-  )
-    .then((res) => {
-      renderProfile(res);
-    })
-    .finally(() => renderSaving(editProfileForm, false));
+    }).then((res) => renderProfile(res));
+  }
+  handleSubmit(makeRequest, event);
 }
 
 function submitNewPlaceForm(event) {
-  event.preventDefault();
-  renderSaving(newPlaceForm, true);
-  postCard(
-    JSON.stringify({
+  function makeRequest() {
+    return postCard({
       name: placeNameInput.value,
       link: linkInput.value,
-    })
-  )
-    .then((res) => {
-      cards.prepend(createCard(res, id, ...handlers));
-    })
-    .finally(() => {
-      renderSaving(newPlaceForm, false);
-      newPlaceForm.reset();
-    });
+    }).then((res) => cards.prepend(createCard(res, id, handlers)));
+  }
+  handleSubmit(makeRequest, event);
 }
 
 function submitAvatarForm(event) {
-  event.preventDefault();
-  renderSaving(editAvatarForm, true);
-  patchUserAvatar(
-    JSON.stringify({
+  function makeRequest() {
+    return patchUserAvatar({
       avatar: avatarInput.value,
-    })
-  )
-    .then((res) => {
-      renderAvatar(res.avatar);
-    })
-    .finally(() => {
-      renderSaving(editAvatarForm, false);
-      editAvatarForm.reset();
-    });
+    }).then((res) => renderAvatar(res.avatar));
+  }
+  handleSubmit(makeRequest, event);
 }
 
 function handleImageClick(name, link) {
@@ -118,30 +111,24 @@ function handleImageClick(name, link) {
   openModal(imagePopup);
 }
 
-function renderSaving(form, flag) {
-  const button = form.querySelector(".popup__button");
-  button.textContent = flag ? "Сохранение..." : "Сохранить";
-  button.disabled = flag;
-  if (!flag) {
-    closeModal(form.closest(".popup"));
-  }
+function renderCards(items) {
+  items.forEach((item) => renderCard(item));
 }
 
-function renderCards(items) {
-  items.forEach((item) => cards.append(createCard(item, id, ...handlers)));
+function renderCard(item, method = "prepend") {
+  const card = createCard(item, id, handlers);
+  cards[method](card);
 }
 
 function renderProfile(props) {
-  document.querySelector(".profile__title").textContent = props.name;
-  document.querySelector(".profile__description").textContent = props.about;
+  profileTitle.textContent = props.name;
+  profileDescription.textContent = props.about;
   renderAvatar(props.avatar);
   id = props._id;
 }
 
 function renderAvatar(link) {
-  document.querySelector(
-    ".profile__image"
-  ).style = `background-image: url('${link}')`;
+  avatarBlock.style = `background-image: url('${link}')`;
 }
 
 popupCloseButtons.forEach((button) =>
@@ -159,14 +146,16 @@ profileEditButton.addEventListener("click", () => {
   descriptionInput.value = profileDescription.textContent;
   openModal(editProfilePopup);
 });
+
 placeAddButton.addEventListener("click", () => {
-  newPlaceForm.reset();
   clearValidation(newPlaceForm, validationConfig);
+  newPlaceForm.reset();
   openModal(newCardPopup);
 });
+
 avatarBlock.addEventListener("click", () => {
-  editAvatarForm.reset();
   clearValidation(editAvatarForm, validationConfig);
+  editAvatarForm.reset();
   openModal(editAvatarPopup);
 });
 
@@ -174,9 +163,10 @@ editProfileForm.addEventListener("submit", (event) => submitProfileForm(event));
 newPlaceForm.addEventListener("submit", (event) => submitNewPlaceForm(event));
 editAvatarForm.addEventListener("submit", (event) => submitAvatarForm(event));
 
-Promise.all([getUser(), getCards()]).then((values) => {
-  const [responseProfile, responseCards] = [...values];
-  enableValidation(validationConfig);
-  renderProfile(responseProfile);
-  renderCards(responseCards);
-});
+Promise.all([getUser(), getCards()])
+  .then(([responseProfile, responseCards]) => {
+    enableValidation(validationConfig);
+    renderProfile(responseProfile);
+    renderCards(responseCards);
+  })
+  .catch((error) => console.error(`Ошибка при загрузке страницы: ${error}`));

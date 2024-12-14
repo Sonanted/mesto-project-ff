@@ -8,7 +8,7 @@ const config = {
   },
 };
 
-function request(endpoint, method, body = null) {
+function request(endpoint, method = "GET", body = null) {
   const options = {
     method: method,
     headers: config.headers,
@@ -23,8 +23,7 @@ function request(endpoint, method, body = null) {
       }
       return Promise.reject(`${response.status} ${response.url}`);
     })
-    .then((response) => Promise.resolve(response))
-    .catch((error) => console.error(error));
+    .then((response) => response);
 }
 
 export const getUser = () => {
@@ -32,11 +31,11 @@ export const getUser = () => {
 };
 
 export const patchUser = (body) => {
-  return request("users/me", "PATCH", body);
+  return request("users/me", "PATCH", JSON.stringify(body));
 };
 
 export const patchUserAvatar = (body) => {
-  return request("users/me/avatar", "PATCH", body);
+  return request("users/me/avatar", "PATCH", JSON.stringify(body));
 };
 
 export const getCards = () => {
@@ -44,7 +43,7 @@ export const getCards = () => {
 };
 
 export const postCard = (body) => {
-  return request("cards", "POST", body);
+  return request("cards", "POST", JSON.stringify(body));
 };
 
 export const deleteCard = (id) => {
